@@ -1,0 +1,117 @@
+<!-- ant build.xml file for building jars. -->
+
+<!-- author: Jun Yang (junyang@cs.duke.edu) -->
+<!-- last modified: Sun Aug 21 23:46:31 EDT 2011 -->
+
+<!-- Usage: -->
+<!-- ant: Compile and package the .jar file. -->
+<!-- ant sample.db: Rebuild SQLite database file sample.db and test RA. -->
+<!-- ant clean: Clean up build files but leave the .jar and sample.db. -->
+<!-- ant deepclean: Clean up the .jar and sample.db as well. -->
+
+<project name="RA" default="jar" basedir=".">
+
+<!-- ********************************************************************** -->
+
+<!-- app.name is the name of the application used to name the .jar
+     files.  You will find these files in the current directory
+     after running "ant package".
+-->
+<property name="app.name" value="ra"/>
+
+<!-- ver.num is the version number.
+-->
+<property name="ver.num" value="2.1b"/>
+
+<!-- lib.dir contains .jar files that will be copied into bld.dir and
+     eventually packaged into the jar file.
+-->
+<property name="lib.dir" value="lib"/>
+
+<!-- src.dir contains Java sources files.  If your source code is
+     organized into packages (recommended for large projects), the
+     package hierarchy should be reflected as a directory structure
+     underneath this directory.
+-->
+<property name="src.dir" value="src"/>
+
+<!-- res.dir contains resources.  These files will be copied into
+     bld.dir and eventually packaged into the jar file.
+-->
+<property name="res.dir" value="res"/>
+
+<!-- bld.dir is the build directory for compiled .class files.
+-->
+<property name="bld.dir" value="build"/>
+
+<!-- main.class specifies the application's entry point; it will go
+     into the manifest.
+-->
+<property name="main.class" value="ra.RA"/>
+
+<!-- ********************************************************************** -->
+
+<property name="env" environment="env" value="env"/>
+<path id="compile.classpath">
+  <pathelement location="."/>
+  <pathelement path="${env.CLASSPATH}"/>
+</path>
+
+<!-- Initialize (nothing to do at this point). -->
+<target name="init">
+</target>
+
+<!-- Clean up. -->
+<target name="clean" depends="init">
+  <delete dir="${bld.dir}"/>
+  <delete>
+    <fileset dir="${src.dir}/ra" includes="RALexer*"/>
+    <fileset dir="${src.dir}/ra" includes="RAParser*"/>
+    <fileset dir="${src.dir}/ra" includes="RAXConstructor*"/>
+  </delete>
+</target>
+
+<!-- Clean up further. -->
+<target name="deepclean" depends="clean">
+  <delete file="${app.name}.jar"/>
+  <delete file="sample.db"/>
+</target>
+
+<!-- Compile. -->
+<target name="compile" depends="init">
+  <mkdir dir="${bld.dir}"/>
+  <unjar dest="${bld.dir}">
+    <fileset dir="${lib.dir}"/>
+  </unjar>
+  <copy todir="${bld.dir}">
+    <fileset dir="${res.dir}"/>
+  </copy>
+  <antlr target="${src.dir}/ra/ra.g"
+         outputdirectory="${src.dir}/ra">
+    <classpath path="${lib.dir}/antlr.jar"/>
+  </antlr>
+  <javac source="1.6" srcdir="${src.dir}" destdir="${bld.dir}" debug="on" debuglevel="lines,vars,source" includeAntRuntime="false">
+    <classpath refid="compile.classpath"/>
+  </javac>
+</target>
+
+<!-- Create .jar file. -->
+<target name="jar" depends="compile">
+  <jar destfile="${app.name}.jar">
+    <fileset dir="${bld.dir}"/>
+    <manifest>
+      <attribute name="Main-Class" value="${main.class}"/>
+      <attribute name="Implementation-Version" value="${ver.num}"/>
+    </manifest>
+  </jar>
+</target>
+
+<!-- Rebuild sample.db and test. -->
+<target name="sample.db" depends="jar">
+  <delete file="sample.db"/>
+  <java jar="${app.name}.jar" fork="true">
+    <arg line="-v -i sample.ra"/>
+  </java>
+</target>
+
+</project>
