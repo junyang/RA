@@ -39,9 +39,9 @@ public abstract class RAXNode {
         return _children.get(i);
     }
     public abstract String genViewDef(DB db)
-        throws SQLException, RAXNode.ValidateException;
+        throws SQLException, ValidateException;
     public String genViewCreateStatement(DB db)
-        throws SQLException, RAXNode.ValidateException {
+        throws SQLException, ValidateException {
         return "CREATE VIEW " + _viewName + " AS " + genViewDef(db);
     }
     public abstract String toPrintString();
@@ -62,7 +62,7 @@ public abstract class RAXNode {
         return;
     }
     public void validate(DB db)
-        throws RAXNode.ValidateException {
+        throws ValidateException {
         // Validate children first; any exception thrown there
         // will shortcut the call.
         for (int i=0; i<getNumChildren(); i++) {
@@ -87,7 +87,7 @@ public abstract class RAXNode {
         } catch (SQLException e) {
             _status = Status.ERROR;
             // Wrap and re-throw the exception for caller to handle.
-            throw new RAXNode.ValidateException(e, this);
+            throw new ValidateException(e, this);
         }
         // Everything rooted at this node went smoothly.
         _status = Status.CORRECT;
@@ -233,9 +233,34 @@ public abstract class RAXNode {
             super(new ArrayList<RAXNode>(Arrays.asList(input1, input2)));
         }
         public String genViewDef(DB db)
-            throws SQLException {
-            return "SELECT * FROM " + getChild(0).getViewName() +
-                " EXCEPT SELECT * FROM " + getChild(1).getViewName();
+            throws SQLException, ValidateException {
+            if (db.getDriverName().equals("com.mysql.jdbc.Driver")) {
+                // MySQL doesn't support EXCEPT, so we need a workaround.
+                // First, get the input schema of the children, which
+                // should have already been validated so their views
+                // have been created at this point:
+                DB.TableSchema input1Schema = db.getTableSchema(getChild(0).getViewName());
+                DB.TableSchema input2Schema = db.getTableSchema(getChild(1).getViewName());
+                if (input1Schema.getColNames().size() !=
+                    input2Schema.getColNames().size()) {
+                    throw new ValidateException("taking the difference between relations with different numbers of columns", this);
+                }
+                String viewDef = "SELECT * FROM " + getChild(0).getViewName() +
+                    " WHERE NOT EXISTS (SELECT * FROM " + getChild(1).getViewName() +
+                    " WHERE ";
+                for (int i=0; i<input1Schema.getColNames().size(); i++) {
+                    if (i>0) viewDef += " AND ";
+                    viewDef += getChild(0).getViewName() + "." +
+                        input1Schema.getColNames().get(i) + "=" +
+                        getChild(1).getViewName() + "." +
+                        input2Schema.getColNames().get(i);
+                }
+                viewDef += ")";
+                return viewDef;
+            } else {
+                return "SELECT * FROM " + getChild(0).getViewName() +
+                    " EXCEPT SELECT * FROM " + getChild(1).getViewName();
+            }
         }
         public String toPrintString() {
             return "\\diff";
@@ -247,9 +272,34 @@ public abstract class RAXNode {
             super(new ArrayList<RAXNode>(Arrays.asList(input1, input2)));
         }
         public String genViewDef(DB db)
-            throws SQLException {
-            return "SELECT * FROM " + getChild(0).getViewName() +
-                " INTERSECT SELECT * FROM " + getChild(1).getViewName();
+            throws SQLException, ValidateException {
+            if (db.getDriverName().equals("com.mysql.jdbc.Driver")) {
+                // MySQL doesn't support INTERSECT, so we need a workaround.
+                // First, get the input schema of the children, which
+                // should have already been validated so their views
+                // have been created at this point:
+                DB.TableSchema input1Schema = db.getTableSchema(getChild(0).getViewName());
+                DB.TableSchema input2Schema = db.getTableSchema(getChild(1).getViewName());
+                if (input1Schema.getColNames().size() !=
+                    input2Schema.getColNames().size()) {
+                    throw new ValidateException("intersecting relations with different numbers of columns", this);
+                }
+                String viewDef = "SELECT DISTINCT * FROM " + getChild(0).getViewName() +
+                    " WHERE EXISTS (SELECT * FROM " + getChild(1).getViewName() +
+                    " WHERE ";
+                for (int i=0; i<input1Schema.getColNames().size(); i++) {
+                    if (i>0) viewDef += " AND ";
+                    viewDef += getChild(0).getViewName() + "." +
+                        input1Schema.getColNames().get(i) + "=" +
+                        getChild(1).getViewName() + "." +
+                        input2Schema.getColNames().get(i);
+                }
+                viewDef += ")";
+                return viewDef;
+            } else {
+                return "SELECT * FROM " + getChild(0).getViewName() +
+                    " INTERSECT SELECT * FROM " + getChild(1).getViewName();
+            }
         }
         public String toPrintString() {
             return "\\intersect";
@@ -275,8 +325,7 @@ public abstract class RAXNode {
                 // Next, parse the list of new column names:
                 List<String> columnNames = parseColumnNames(_columns);
                 if (inputSchema.getColNames().size() != columnNames.size()) {
-                    throw new RAXNode.
-                        ValidateException("renaming an incorrect number of columns", this);
+                    throw new ValidateException("renaming an incorrect number of columns", this);
                 }
                 String viewDef = "SELECT ";
                 for (int i=0; i<columnNames.size(); i++) {

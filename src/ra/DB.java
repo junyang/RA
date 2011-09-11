@@ -59,6 +59,7 @@ public class DB {
     static List<String> supportedDriverNames = Arrays.asList(
             "org.sqlite.JDBC",
             "org.postgresql.Driver",
+            "com.mysql.jdbc.Driver",
             "com.ibm.db2.jcc.DB2Driver"
         );
     static {
@@ -258,7 +259,10 @@ public class DB {
         ResultSetMetaData rsmd = rs.getMetaData();
         int numCols = rsmd.getColumnCount();
         for (int i=1; i<=numCols; i++) {
-            colNames.add(rsmd.getColumnName(i));
+            // Important: Use getColumnLabel() to get new column names specified
+            // in AS or in CREATE VIEW.  For some JDBC drivers, getColumnName()
+            // gives the original column names inside base tables.
+            colNames.add(rsmd.getColumnLabel(i));
             colTypes.add(rsmd.getColumnTypeName(i));
         }
         rs.close();
