@@ -1,3 +1,5 @@
+* for more info, visit http://www.cs.duke.edu/~junyang/ra/
+
 * standard usage:
   - first, prepare a connection properties file.  see res/ra/ra.properties
     for an example.  if you want to make it default, edit res/ra/ra.properties
@@ -13,8 +15,7 @@
  
 * lib/ directory contains the necessary jar libraries, including antlr
   (for parsing), jline (for command-line editing), jargs (for parsing
-  arguments), and various jdbc drivers (e.g., db2jcc4.jar, postgresql.jar,
-  sqlitejdbc-v056.jar, plus any other DBMS).  to make sure that a jdbc
+  arguments), and various jdbc drivers.  to make sure that a jdbc
   driver is loaded, add a Class.forName call to src/ra/DB.java.
  
 * src/ directory holds the source files.
