@@ -133,7 +133,7 @@ expr_unary
     | RENAME^ OPERATOR_OPTION expr_unary
     ;
 expr
-    : expr_unary ((JOIN^ OPERATOR_OPTION|CROSS^|UNION^|DIFF^|INTERSECT^) expr_unary)*
+    : expr_unary ((JOIN^ (OPERATOR_OPTION)?|CROSS^|UNION^|DIFF^|INTERSECT^) expr_unary)*
     // Note that ^'s above explicitly specify what the AST roots should be.
     ;
 
@@ -148,8 +148,8 @@ options {
 expr returns [RAXNode r = null] {
     RAXNode input, input1, input2;
 }
-    : #(JOIN input1=expr jc:OPERATOR_OPTION input2=expr) {
-            r = new RAXNode.JOIN(jc.getText(), input1, input2);
+    : #(JOIN input1=expr (jc:OPERATOR_OPTION)? input2=expr) {
+            r = new RAXNode.JOIN((jc == null)? null : jc.getText(), input1, input2);
         }
     | #(CROSS input1=expr input2=expr) {
             r = new RAXNode.CROSS(input1, input2);

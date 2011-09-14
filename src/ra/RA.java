@@ -206,7 +206,7 @@ public class RA {
         if (reader != null) {
             reader.addCompletor(new SimpleCompletor(new String [] {
                 "\\help;", "\\quit;", "\\list;", "\\sqlexec_{",
-                "\\select_{", "\\project_{", "\\join_{", "\\rename_{",
+                "\\select_{", "\\project_{", "\\join", "\\join_{", "\\rename_{",
                 "\\cross", "\\union", "\\diff", "\\intersect"
             }));
         }
@@ -255,6 +255,7 @@ public class RA {
             out.println("R: relation named by R");
             out.println("\\select_{COND} EXP: selection over an expression");
             out.println("\\project_{ATTR_LIST} EXP: projection of an expression");
+            out.println("EXP_1 \\join EXP_2: natural join between two expressions");
             out.println("EXP_1 \\join_{COND} EXP_2: theta-join between two expressions");
             out.println("EXP_1 \\cross EXP_2: cross-product between two expressions");
             out.println("EXP_1 \\union EXP_2: union between two expressions");
