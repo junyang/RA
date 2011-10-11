@@ -214,18 +214,18 @@ public abstract class RAXNode {
                     String viewDef = "SELECT ";
                     for (int i=0; i<input1ColumnNames.size(); i++) {
                         if (i > 0) viewDef += ", ";
-                        viewDef += "V1." + input1ColumnNames.get(i);
+                        viewDef += "V1.\"" + input1ColumnNames.get(i) + "\"";
                     }
                     for (String col : moreColumnNames) {
-                        viewDef += ", V2." + col;
+                        viewDef += ", V2.\"" + col + "\"";
                     }
                     viewDef += " FROM " +
                         getChild(0).getViewName() + " AS V1, " +
                         getChild(1).getViewName() + " AS V2 WHERE ";
                     for (int i=0; i<joinColumnNames.size(); i++) {
                         if (i > 0) viewDef += " AND ";
-                        viewDef += "V1." + joinColumnNames.get(i) +
-                            "=V2." + joinColumnNames.get(i);
+                        viewDef += "V1.\"" + joinColumnNames.get(i) +
+                            "\"=V2.\"" + joinColumnNames.get(i) + "\"";
                     }
                     return viewDef;
                 }
@@ -291,10 +291,10 @@ public abstract class RAXNode {
                     " WHERE ";
                 for (int i=0; i<input1Schema.getColNames().size(); i++) {
                     if (i>0) viewDef += " AND ";
-                    viewDef += getChild(0).getViewName() + "." +
-                        input1Schema.getColNames().get(i) + "=" +
-                        getChild(1).getViewName() + "." +
-                        input2Schema.getColNames().get(i);
+                    viewDef += getChild(0).getViewName() + ".\"" +
+                        input1Schema.getColNames().get(i) + "\"=" +
+                        getChild(1).getViewName() + ".\"" +
+                        input2Schema.getColNames().get(i) + "\"";
                 }
                 viewDef += ")";
                 return viewDef;
@@ -330,10 +330,10 @@ public abstract class RAXNode {
                     " WHERE ";
                 for (int i=0; i<input1Schema.getColNames().size(); i++) {
                     if (i>0) viewDef += " AND ";
-                    viewDef += getChild(0).getViewName() + "." +
-                        input1Schema.getColNames().get(i) + "=" +
-                        getChild(1).getViewName() + "." +
-                        input2Schema.getColNames().get(i);
+                    viewDef += getChild(0).getViewName() + ".\"" +
+                        input1Schema.getColNames().get(i) + "\"=" +
+                        getChild(1).getViewName() + ".\"" +
+                        input2Schema.getColNames().get(i) + "\"";
                 }
                 viewDef += ")";
                 return viewDef;
@@ -371,8 +371,8 @@ public abstract class RAXNode {
                 String viewDef = "SELECT ";
                 for (int i=0; i<columnNames.size(); i++) {
                     if (i>0) viewDef += ", ";
-                    viewDef += inputSchema.getColNames().get(i) + " AS " +
-                        columnNames.get(i);
+                    viewDef += "\"" + inputSchema.getColNames().get(i) +
+                        "\" AS " + columnNames.get(i);
                 }
                 viewDef += " FROM " + getChild(0).getViewName();
                 return viewDef;
