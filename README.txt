@@ -14,7 +14,7 @@
   - you need ant, a java build tool.  the build script is build.xml.
  
 * lib/ directory contains the necessary jar libraries, including antlr
-  (for parsing), jline (for command-line editing), jargs (for parsing
+  (for parsing), jline2 (for command-line editing), jargs (for parsing
   arguments), and various jdbc drivers.  to make sure that a jdbc
   driver is loaded, add a Class.forName call to src/ra/DB.java.
  

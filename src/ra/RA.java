@@ -124,17 +124,6 @@ public class RA {
         } else if (otherArgs.length == 1) {
             propsFileName = otherArgs[0];
         }
-        if (outFileName != null) {
-            try {
-                OutputStream log = new FileOutputStream(outFileName);
-                out = new TeePrintStream(out, log);
-                err = new TeePrintStream(err, log);
-            } catch (FileNotFoundException e) {
-                err.println("Error opening output file '" + outFileName + "'");
-                err.println();
-                exit(1);
-            }
-        }
         if (inFileName != null) {
             try {
                 in = new FileInputStream(inFileName);
@@ -152,6 +141,18 @@ public class RA {
             } catch (IOException e) {
                 err.println("Unexceptected I/O error:");
                 err.println(e.toString());
+                err.println();
+                exit(1);
+            }
+        }
+        if (outFileName != null) {
+            try {
+                OutputStream log = new FileOutputStream(outFileName, true);
+                out = new TeePrintStream(out, log);
+                err = new TeePrintStream(err, log);
+                in = new LogInputStream(in, log);
+            } catch (FileNotFoundException e) {
+                err.println("Error opening output file '" + outFileName + "'");
                 err.println();
                 exit(1);
             }
