@@ -21,7 +21,7 @@
 
 <!-- ver.num is the version number.
 -->
-<property name="ver.num" value="2.1b"/>
+<property name="ver.num" value="2.2b"/>
 
 <!-- lib.dir contains .jar files that will be copied into bld.dir and
      eventually packaged into the jar file.

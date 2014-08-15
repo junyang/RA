@@ -9,9 +9,8 @@ import antlr.RecognitionException;
 import antlr.TokenStreamException;
 import antlr.CommonAST;
 import antlr.collections.AST;
-import jline.ConsoleReader;
-import jline.SimpleCompletor;
-import jline.ConsoleReaderInputStream;
+import jline.console.ConsoleReader;
+import jline.console.completer.StringsCompleter;
 
 public class RA {
 
@@ -56,7 +55,7 @@ public class RA {
 
     protected static void prompt(int line) {
         if (reader == null) return;
-        reader.setDefaultPrompt((line == 1)? "ra> " : "" + line + "> ");
+        reader.setPrompt((line == 1)? "ra> " : "" + line + "> ");
         return;
     }
 
@@ -147,6 +146,8 @@ public class RA {
         } else {
             try {
                 reader = new ConsoleReader();
+                // Make sure ConsoleReader doesn't do funny things with backslashes:
+                reader.setExpandEvents(false);
                 in = new ConsoleReaderInputStream(reader);
             } catch (IOException e) {
                 err.println("Unexceptected I/O error:");
@@ -204,12 +205,13 @@ public class RA {
         }
 
         if (reader != null) {
-            reader.addCompletor(new SimpleCompletor(new String [] {
+            reader.addCompleter(new StringsCompleter(new String [] {
                 "\\help;", "\\quit;", "\\list;", "\\sqlexec_{",
                 "\\select_{", "\\project_{", "\\join", "\\join_{", "\\rename_{",
                 "\\cross", "\\union", "\\diff", "\\intersect"
             }));
         }
+
         DataInputStream din = new DataInputStream(in);
         while (true) {
             // Clean start every time.
