@@ -34,6 +34,7 @@ public class RA {
         out.println("RA: an interactive relational algebra interpreter");
         out.println("Version " + RA.class.getPackage().getImplementationVersion() +
                     " by Jun Yang (junyang@cs.duke.edu)");
+        out.println("http://www.cs.duke.edu/~junyang/ra/");
         out.println("Type \"\\help;\" for help");
         out.println();
         return;
@@ -42,13 +43,20 @@ public class RA {
     protected static void usage() {
         out.println("Usage: ra [Options] [PROPS_FILE]");
         out.println("Options:");
-        out.println("    -h: print this message, and exit");
-        out.println("    -i FILE: read commands from FILE instead of standard input");
-        out.println("    -o FILE: save a transcript of the session in FILE");
-        out.println("    -p: prompt for database password (overriding any password in PROPS_FILE)");
-        out.println("    -v: turn on verbose output");
-        out.println("PROPS_FILE: specifies the the JDBC connection URL and properties");
-        out.println("            (and defaults to /ra/ra.properties packaged in ra.jar)");
+        out.println("  -h: print this message, and exit");
+        out.println("  -i FILE: read commands from FILE instead of standard input");
+        out.println("  -o FILE: save a transcript of the session in FILE");
+        out.println("  -v: turn on verbose output");
+        out.println("  -l URL: use URL for JDBC database connection");
+        out.println("    (overriding the URL in PROPS_FILE)");
+        out.println("  -p PASSWD: use PASSWD to connect to the database");
+        out.println("    (overriding any password in PROPS_FILE)");
+        out.println("  -P: prompt for database password");
+        out.println("    (overriding any password in PROPS_FILE)");
+        out.println("  -u USER: connect to the database as USER");
+        out.println("    (overriding any user in PROPS_FILE)");
+        out.println("PROPS_FILE: specifies the JDBC connection URL and properties");
+        out.println("    (defaults to /ra/ra.properties packaged in ra.jar)");
         out.println();
         return;
     }
@@ -98,7 +106,11 @@ public class RA {
         CmdLineParser.Option helpO = cmdLineParser.addBooleanOption('h', "help");
         CmdLineParser.Option inputO = cmdLineParser.addStringOption('i', "input");
         CmdLineParser.Option outputO = cmdLineParser.addStringOption('o', "output");
-        CmdLineParser.Option passwordO = cmdLineParser.addBooleanOption('p', "password");
+        CmdLineParser.Option passwordO = cmdLineParser.addStringOption('p', "password");
+        CmdLineParser.Option promptPasswordO = cmdLineParser.addBooleanOption('P', "prompt-password");
+        CmdLineParser.Option schemaO = cmdLineParser.addStringOption('s', "schema");
+        CmdLineParser.Option urlO = cmdLineParser.addStringOption('l', "url");
+        CmdLineParser.Option userO = cmdLineParser.addStringOption('u', "user");
         CmdLineParser.Option verboseO = cmdLineParser.addBooleanOption('v', "verbose");
         try {
             cmdLineParser.parse(args);
@@ -110,7 +122,11 @@ public class RA {
         boolean help = ((Boolean)cmdLineParser.getOptionValue(helpO, Boolean.FALSE)).booleanValue();
         String inFileName = (String)cmdLineParser.getOptionValue(inputO);
         String outFileName = (String)cmdLineParser.getOptionValue(outputO);
-        boolean promptPassword = ((Boolean)cmdLineParser.getOptionValue(passwordO, Boolean.FALSE)).booleanValue();
+        String password = (String)cmdLineParser.getOptionValue(passwordO);
+        boolean promptPassword = ((Boolean)cmdLineParser.getOptionValue(promptPasswordO, Boolean.FALSE)).booleanValue();
+        String schema = (String)cmdLineParser.getOptionValue(schemaO);
+        String url = (String)cmdLineParser.getOptionValue(urlO);
+        String user = (String)cmdLineParser.getOptionValue(userO);
         boolean verbose = ((Boolean)cmdLineParser.getOptionValue(verboseO, Boolean.FALSE)).booleanValue();
         if (help) {
             usage();
@@ -183,6 +199,12 @@ public class RA {
                 exit(1);
             }
         }
+        if (url != null)
+            props.setProperty("url", url);
+        if (user != null)
+            props.setProperty("user", user);
+        if (password != null)
+            props.setProperty("password", password);
         if (promptPassword) {
             try {
                 props.setProperty("password",
@@ -204,6 +226,8 @@ public class RA {
             err.println();
             exit(1);
         }
+        if (schema != null)
+            props.setProperty("schema", schema);
 
         if (reader != null) {
             reader.addCompleter(new StringsCompleter(new String [] {
