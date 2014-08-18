@@ -90,7 +90,7 @@
          outputdirectory="${src.dir}/ra">
     <classpath path="${lib.dir}/antlr.jar"/>
   </antlr>
-  <javac source="1.6" srcdir="${src.dir}" destdir="${bld.dir}" debug="on" debuglevel="lines,vars,source" includeAntRuntime="false">
+  <javac source="1.6" target="1.6" srcdir="${src.dir}" destdir="${bld.dir}" debug="on" debuglevel="lines,vars,source" includeAntRuntime="false">
     <classpath refid="compile.classpath"/>
   </javac>
 </target>
